@@ -14,7 +14,7 @@ void main() {
     // color = mix(color1, color2, vPosition.z);
 
     // color = mix(color1, color2, vPosition.z * 0.5 + 0.5);
-    color = mix(uColor1, uColor2, vPosition.z * 0.5 + 0.5);
+    color = mix(uColor1, uColor2, vPosition.z * 0.5 + 0.75);
 
     gl_FragColor = vec4(color, 1.0);
 }

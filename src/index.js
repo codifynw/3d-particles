@@ -62,22 +62,35 @@ const skull = new Model({
   name: 'skull',
   url: './models/skull.glb',
   scene: scene,
-  placeOnLoad: true,
+  placeOnLoad: false,
   color1: 'red',
   color2: 'blue',
   background: 'black',
+  type: 'obj',
 });
 
 const horse = new Model({
   name: 'horse',
   url: './models/horse.glb',
   scene: scene,
+  placeOnLoad: false,
   color1: 'black',
   color2: 'red',
   background: 'silver',
+  type: 'obj',
 });
 
-const models = [skull, horse];
+const plane = new Model({
+  name: 'plane',
+  placeOnLoad: false,
+  type: 'generated',
+  scene: scene,
+  color1: 'red',
+  color2: 'red',
+  background: 'black',
+});
+
+const models = [skull, horse, plane];
 
 /*------------------------------
 Controllers
@@ -116,6 +129,10 @@ const animate = function () {
     horse.particlesMaterial.uniforms.uTime.value = clock.getElapsedTime();
   }
 
+  if (plane.isActive) {
+    plane.particlesMaterial.uniforms.uTime.value = clock.getElapsedTime();
+  }  
+
   tick++
 };
 animate();
@@ -145,4 +162,4 @@ function onMouseMove(event) {
   })
 }
 
-window.addEventListener('mousemove', onMouseMove)
+// window.addEventListener('mousemove', onMouseMove)
