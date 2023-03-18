@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "gsap": "^3.6.0",
+    "simplex-noise": "^4.0.1",
     "three": "^0.125.2"
   }
 }

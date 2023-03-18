@@ -27,7 +27,7 @@ const camera = new THREE.PerspectiveCamera(
   100
 );
 camera.position.z = 5;
-camera.position.y = 1;
+camera.position.y = 3;
 scene.add(camera);
 
 
@@ -64,8 +64,8 @@ const skull = new Model({
   url: './models/skull.glb',
   scene: scene,
   placeOnLoad: false,
-  color1: 'red',
-  color2: 'blue',
+  color1: 'white',
+  color2: 'white',
   background: 'black',
   type: 'obj',
   camera: camera,
@@ -76,8 +76,8 @@ const horse = new Model({
   url: './models/horse.glb',
   scene: scene,
   placeOnLoad: false,
-  color1: 'black',
-  color2: 'red',
+  color1: 'white',
+  color2: 'white',
   background: 'silver',
   type: 'obj',
 });
@@ -87,8 +87,8 @@ const plane = new Model({
   placeOnLoad: true,
   type: 'generated',
   scene: scene,
-  color1: 'red',
-  color2: 'red',
+  color1: 'white',
+  color2: 'white',
   background: 'black',
 });
 
@@ -102,7 +102,6 @@ let hoveringButton = false;
 
 document.querySelectorAll("button").forEach((button) => {
   button.addEventListener("mouseenter", () => {
-    debugger
     hoveringButton = true;
     if (models.plane.isActive) {
       models.plane.remove();
@@ -125,6 +124,17 @@ document.querySelectorAll("button").forEach((button) => {
       }
     }, 0);
   });
+});
+
+// const circleButton = document.querySelector('.circle');
+// circleButton.addEventListener('click', () => {
+//   plane.transformPlaneIntoCircle();
+// });
+
+const planeButton = document.querySelector('.plane');
+planeButton.addEventListener('click', () => {
+  // plane.transformCircleIntoPlane();
+  plane.transformPlaneToMountains();
 });
 
 /*------------------------------

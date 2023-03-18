@@ -4,6 +4,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
 import { MeshSurfaceSampler } from "three/examples/jsm/math/MeshSurfaceSampler.js";
 
+import {createNoise3D} from "simplex-noise";
 import vertex from "./shader/vertexShader.glsl";
 import fragment from "./shader/fragmentShader.glsl";
 
@@ -23,6 +24,7 @@ class Model {
     this.dracoLoader = new DRACOLoader();
     this.dracoLoader.setDecoderPath("./draco/");
     this.loader.setDRACOLoader(this.dracoLoader);
+    this.progress = 0;
 
     if (this.type === "generated") {
       this.generatePlane();
@@ -38,7 +40,7 @@ class Model {
   setupParticles(particlesPosition, particlesRandomness) {
     // Particles Material
     this.particlesMaterial = new THREE.ShaderMaterial({
-      blending:  THREE.CustomBlending,
+      blending: THREE.CustomBlending,
       vertexShader: vertex,
       fragmentShader: fragment,
       uniforms: {
@@ -46,7 +48,21 @@ class Model {
         uColor2: { value: new THREE.Color(this.color2) },
         uTime: { value: 0 },
         uScale: { value: 0 },
-        uCameraPosition: { value: this.scene.getObjectByProperty('type', 'PerspectiveCamera').position }, // Updated line
+        uCameraPosition: {
+          value: this.scene.getObjectByProperty("type", "PerspectiveCamera")
+            .position,
+        }, // Updated line
+        uFov: {
+          value: this.scene.getObjectByProperty("type", "PerspectiveCamera")
+            .fov,
+        }, // Add this line
+        uAspectRatio: {
+          value: this.scene.getObjectByProperty("type", "PerspectiveCamera")
+            .aspect,
+        }, // Add this line
+        resolution: {
+          value: new THREE.Vector2(window.innerWidth, window.innerHeight),
+        }, // Add this line
       },
       transparent: true,
       depthTest: false,
@@ -81,7 +97,7 @@ class Model {
 
       // Material Mesh
       this.material = new THREE.MeshBasicMaterial({
-        color: "red",
+        color: "green",
         wireframe: true,
       });
       this.mesh.material = this.material;
@@ -90,7 +106,7 @@ class Model {
       this.geometry = this.mesh.geometry;
 
       // Set up particles
-      const numParticles = 20000;
+      const numParticles = 30000;
       const particlesPosition = new Float32Array(numParticles * 3);
       const particlesRandomness = new Float32Array(numParticles * 3);
 
@@ -142,6 +158,7 @@ class Model {
       );
     }
 
+    this.initialParticlesPosition = new Float32Array(particlesPosition);
     this.setupParticles(particlesPosition, particlesRandomness);
   }
 
@@ -172,6 +189,120 @@ class Model {
         this.scene.remove(this.particles);
       },
     });
+  }
+
+  transformPlaneIntoCircle() {
+    gsap.to(this, {
+      progress: 1,
+      duration: 0.5,
+      ease: "power3.out",
+      onUpdate: () => this.updateParticlesPositions(),
+    });
+  }
+
+  transformCircleIntoPlane(duration = 0.5) {
+    this.progress = 0;
+
+    gsap.to(this, {
+      progress: 1,
+      duration: duration,
+      onUpdate: () => {
+        this.updateParticlesPositionsToPlane();
+      },
+    });
+  }
+
+  updateParticlesPositions() {
+    const numParticles = 20000;
+    const particlesPosition = new Float32Array(numParticles * 3);
+
+    const radius = 3.0;
+
+    for (let i = 0; i < numParticles; i++) {
+      const t = this.progress;
+
+      const startX = this.initialParticlesPosition[i * 3];
+      const startY = this.initialParticlesPosition[i * 3 + 1];
+      const startZ = this.initialParticlesPosition[i * 3 + 2];
+
+      const u = Math.random();
+      const v = Math.random();
+
+      const theta = 2 * Math.PI * u;
+      const phi = Math.acos(2 * v - 1);
+
+      const endX = radius * Math.sin(phi) * Math.cos(theta);
+      const endY = radius * Math.sin(phi) * Math.sin(theta);
+      const endZ = radius * Math.cos(phi);
+
+      const x = startX + t * (endX - startX);
+      const y = startY + t * (endY - startY);
+      const z = startZ + t * (endZ - startZ);
+
+      particlesPosition.set([x, y, z], i * 3);
+    }
+
+    this.particlesGeometry.setAttribute(
+      "position",
+      new THREE.BufferAttribute(particlesPosition, 3)
+    );
+  }
+
+  updateParticlesPositionsToPlane() {
+    const numParticles = 20000;
+    const particlesPosition = new Float32Array(numParticles * 3);
+
+    for (let i = 0; i < numParticles; i++) {
+      const t = this.progress;
+
+      const startX = this.initialParticlesPosition[i * 3];
+      const startY = this.initialParticlesPosition[i * 3 + 1];
+      const startZ = this.initialParticlesPosition[i * 3 + 2];
+
+      const endX = this.initialParticlesPosition[i * 3];
+      const endY = this.initialParticlesPosition[i * 3 + 1];
+      const endZ = this.initialParticlesPosition[i * 3 + 2];
+
+      const x = startX + t * (endX - startX);
+      const y = startY + t * (endY - startY);
+      const z = startZ + t * (endZ - startZ);
+
+      particlesPosition.set([x, y, z], i * 3);
+    }
+
+    this.particlesGeometry.setAttribute(
+      "position",
+      new THREE.BufferAttribute(particlesPosition, 3)
+    );
+  }
+
+  transformPlaneToMountains(duration = 0.5) {
+    this.progress = 0;
+  
+    gsap.to(this, {
+      progress: 1,
+      duration: duration,
+      onUpdate: () => {
+        this.updateParticlesPositionsToMountains();
+      },
+    });
+  }
+  
+  updateParticlesPositionsToMountains() {
+    const noise3D = createNoise3D();
+  
+    for (let i = 0; i < this.particlesGeometry.attributes.position.count; i++) {
+      const x = this.particlesGeometry.attributes.position.getX(i);
+      const y = this.particlesGeometry.attributes.position.getY(i);
+      const z = this.particlesGeometry.attributes.position.getZ(i);
+  
+      const noiseValue = noise3D(x, y, z);
+      const newY = y + noiseValue / 10;
+  
+      this.particlesGeometry.attributes.position.setY(i, newY);
+    }
+  
+    this.particlesGeometry.attributes.position.needsUpdate = true; 
   }
 }
 

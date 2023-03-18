@@ -1,8 +1,11 @@
+uniform vec2 resolution;
 varying vec3 vPosition;
 uniform float uTime;
 attribute vec3 aRandom;
 uniform float uScale;
 varying vec4 vViewPosition; 
+uniform float uFov;
+uniform float uAspectRatio;
 
 void main() {
     vPosition = position;
@@ -20,10 +23,20 @@ void main() {
 
     pos *= uScale;
     
-    vec4 mvPosition = modelViewMatrix * vec4( pos, 1.0 );
-    gl_Position = projectionMatrix * mvPosition;
-    vViewPosition = modelViewMatrix * vec4(pos, 1.0); 
-    gl_PointSize = 8.0 / -mvPosition.z;
+  vec4 mvPosition = modelViewMatrix * vec4( pos, 1.0 );
+  gl_Position = projectionMatrix * mvPosition;
+
+  // Calculate distance from the camera
+  float distance = length(mvPosition.xyz);
+
+  // Calculate point size based on distance, field of view, and aspect ratio
+  float halfFov = radians(uFov) * 0.5;
+  float screenSize = 2.0 * distance * tan(halfFov);
+  float screenWidth = screenSize * uAspectRatio;
+  gl_PointSize = 0.005 * (resolution.x / screenWidth);
+
+    // float pointSize = 20.0 / distance;
+// gl_PointSize = 2.0;
 }
 
 
