@@ -1,20 +1,19 @@
 varying vec3 vPosition;
+varying vec4 vViewPosition; // Add this line
 uniform vec3 uColor1;
 uniform vec3 uColor2;
+uniform vec3 uCameraPosition; // Add this line
 
 void main() {
-    vec3 color = vec3(1.0, 0.0, 0.0);
-    // color = vPosition;
-    // color = vec3(vPosition.z, vPosition.z, vPosition.z);
+  vec3 color = mix(uColor1, uColor2, 1.0);
 
-    // vec3 color1 = vec3(1.0, 0.0, 0.0);
-    // vec3 color2 = vec3(1.0, 1.0, 0.0);
+  // Calculate distance between particle and camera
+  float distance = length(uCameraPosition - vViewPosition.xyz);
 
-    // 
-    // color = mix(color1, color2, vPosition.z);
+  // Modify alpha value based on distance
+  float minDistance = 10.0;
+  float maxDistance = 50.0;
+  float alpha = 1.0 - smoothstep(minDistance, maxDistance, distance);
 
-    // color = mix(color1, color2, vPosition.z * 0.5 + 0.5);
-    color = mix(uColor1, uColor2, vPosition.z * 0.5 + 0.75);
-
-    gl_FragColor = vec4(color, 1.0);
+  gl_FragColor = vec4(color, alpha);
 }

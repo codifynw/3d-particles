@@ -9,7 +9,7 @@ let tick = 0;
 Renderer
 ------------------------------*/
 const renderer = new THREE.WebGLRenderer({
-  antialias: true,
+  antialias: false,
   alpha: true
 });
 renderer.setSize( window.innerWidth, window.innerHeight );
@@ -28,6 +28,7 @@ const camera = new THREE.PerspectiveCamera(
 );
 camera.position.z = 5;
 camera.position.y = 1;
+scene.add(camera);
 
 
 /*------------------------------
@@ -67,6 +68,7 @@ const skull = new Model({
   color2: 'blue',
   background: 'black',
   type: 'obj',
+  camera: camera,
 });
 
 const horse = new Model({
@@ -82,7 +84,7 @@ const horse = new Model({
 
 const plane = new Model({
   name: 'plane',
-  placeOnLoad: false,
+  placeOnLoad: true,
   type: 'generated',
   scene: scene,
   color1: 'red',
@@ -90,24 +92,40 @@ const plane = new Model({
   background: 'black',
 });
 
-const models = [skull, horse, plane];
+const models = {skull: skull, horse: horse,plane: plane};
 
 /*------------------------------
 Controllers
 ------------------------------*/
 const buttons = document.querySelectorAll('button');
+let hoveringButton = false;
 
-buttons.forEach((button, index) => {
-  button.addEventListener('click', () => {
-    models.forEach((model, i) => {
-      if (index === i) {
-        model.add();
-      } else {
-        model.remove();
-      }
+document.querySelectorAll("button").forEach((button) => {
+  button.addEventListener("mouseenter", () => {
+    debugger
+    hoveringButton = true;
+    if (models.plane.isActive) {
+      models.plane.remove();
     }
-  )})
-})
+    const modelName = button.getAttribute("data-model");
+    if (!models[modelName].isActive) {
+      models[modelName].add();
+    }
+  });
+
+  button.addEventListener("mouseleave", () => {
+    const modelName = button.getAttribute("data-model");
+    if (models[modelName].isActive) {
+      models[modelName].remove();
+    }
+    hoveringButton = false;
+    setTimeout(() => {
+      if (!hoveringButton && !models.plane.isActive) {
+        models.plane.add();
+      }
+    }, 0);
+  });
+});
 
 /*------------------------------
 Clock
